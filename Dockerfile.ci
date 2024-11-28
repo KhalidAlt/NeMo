@@ -34,17 +34,12 @@ EOF
 WORKDIR /workspace
 
 # Install Mamba Dependancy
-ARG CAUSAL_CONV_TAG=v1.2.2.post1
+ARG CAUSAL_CONV_TAG=v1.2.2.post1 
+ARG MAMBA_TAG=v2.2.0
 
 RUN <<"EOF" bash -ex
 # Mamba dependancy installation
-
-git clone --depth 1 --branch ${CAUSAL_CONV_TAG} https://github.com/Dao-AILab/causal-conv1d && \
-  cd causal-conv1d && \
-  python setup.py install && \
-  cd .. && \
-  rm -rf causal-conv1d
-
+MAMBA_FORCE_BUILD=TRUE CAUSAL_CONV1D_FORCE_BUILD=TRUE pip3 install --no-cache-dir -v git+https://github.com/Dao-AILab/causal-conv1d.git@${CAUSAL_CONV_TAG} git+https://github.com/state-spaces/mamba.git@${MAMBA_TAG}
 EOF
 
 RUN pip install hatchling   # needed to install nemo-run
