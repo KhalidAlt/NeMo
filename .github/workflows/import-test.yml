@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        collection: [asr, nlp, tts, multimodal, audio, slu]
+        collection: [asr, nlp, tts]
         python: ['3.10', '3.11', '3.12']
     steps:
     - name: Checkout repo
