@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         collection: [asr, tts]
-    container: python:3.10
+    # container: python:3.10
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
