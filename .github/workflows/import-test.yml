@@ -10,7 +10,7 @@ on:
 jobs:
   test-imports:
     name: test-${{ matrix.collection }}-import-${{ matrix.os }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
