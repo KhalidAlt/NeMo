@@ -32,7 +32,7 @@ jobs:
         
         # Preserve wheel location
         DIST_FILE=$(find ./dist -name "*.whl" | head -n 1)
-        echo "::set-output name=DIST_FILE::${DIST_FILE}"
+        echo "DIST_FILE=${DIST_FILE}" | tee -a "$GITHUB_OUTPUT"
     
     - name: Install NeMo + test dependencies
       run: |
