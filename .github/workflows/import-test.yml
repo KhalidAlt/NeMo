@@ -25,7 +25,7 @@ jobs:
       run:  |
         # Build nemo as a wheel
         pip install build
-        python -m build --no-isolation --wheel
+        python -m build --wheel
         
         # Preserve wheel location
         DIST_FILE=$(find ./dist -name "*.whl" | head -n 1)
