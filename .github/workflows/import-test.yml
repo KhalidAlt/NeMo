@@ -9,19 +9,20 @@ on:
 # Check https://hub.docker.com/r/pytorch/pytorch/tags for latest tags
 jobs:
   test-imports:
-    name: test-${{ matrix.collection }}-import-${{ matrix.os }}
+    name: test-${{ matrix.collection }}-import-${{ matrix.os }}-py${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         collection: [asr, tts]
+        python: [3.10, 3.11, 3.12]
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.10' 
+        python-version: '${{ matrix.python }}' 
     - name: Build wheel
       id: nemo-wheel
       run:  |
