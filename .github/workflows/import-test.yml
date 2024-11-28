@@ -12,6 +12,7 @@ jobs:
     name: test-${{ matrix.collection }}-import-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         collection: [asr, tts]
@@ -19,12 +20,9 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
-    - name: Install nemo dependencies
+    - name: Build wheel
       id: nemo-wheel
       run:  |
-        # install test requirements
-        pip install -r requirements/requirements_test.txt
-        
         # Build nemo as a wheel
         pip install build
         python -m build --no-isolation --wheel
@@ -33,8 +31,11 @@ jobs:
         DIST_FILE=$(find ./dist -name "*.whl" | head -n 1)
         echo "::set-output name=DIST_FILE::${DIST_FILE}"
     
-    - name: Install wheel
+    - name: Install NeMo + test dependencies
       run: |
+        # install test requirements
+        pip install -r requirements/requirements_test.txt
+        
         # Install NeMo Domain
         pip install "${{ steps.nemo-wheel.outputs.DIST_FILE }}[asr]"
     
