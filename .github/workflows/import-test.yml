@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        collection: [asr, tts]
+        collection: [asr, tts, nlp]
         python: ['3.10', '3.11', '3.12']
     steps:
     - name: Checkout repo
@@ -40,11 +40,11 @@ jobs:
         pip install -r requirements/requirements_test.txt
         
         # Install NeMo Domain
-        pip install "${{ steps.nemo-wheel.outputs.DIST_FILE }}[asr]"
+        pip install "${{ steps.nemo-wheel.outputs.DIST_FILE }}[${{ matrix.collection }}]"
     
     - name: Run ${{ matrix.collection }} checks
       run: |
         # Run import checks
-        python tests/core_ptl/check_imports.py --domain "asr"
+        python tests/core_ptl/check_imports.py --domain "${{ matrix.collection }}"
   
   
