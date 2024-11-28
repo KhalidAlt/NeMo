@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         collection: [asr, tts]
-        python: [3.10, 3.11, 3.12]
+        python: ['3.10', '3.11', '3.12']
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
