@@ -16,8 +16,7 @@
 # limitations under the License.
 
 """Setup for pip package."""
-
-import codecs
+import re
 import importlib.util
 import os
 import subprocess
