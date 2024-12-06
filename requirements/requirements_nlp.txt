@@ -10,7 +10,7 @@ ijson
 jieba
 markdown2
 matplotlib>=3.3.2
-# megatron_core @ git+https://github.com/NVIDIA/Megatron-LM.git@${MCORE_TAG:-2f67f35b4a9e5596034e93eddeed07009bcf630c}
+megatron_core @ git+https://github.com/NVIDIA/Megatron-LM.git@${MCORE_TAG:-2f67f35b4a9e5596034e93eddeed07009bcf630c}
 nltk>=3.6.5
 numpy<2  # tensorstore has an implicit compiled dependency on numpy<2
 opencc
