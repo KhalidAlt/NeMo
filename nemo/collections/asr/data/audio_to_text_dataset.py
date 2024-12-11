@@ -342,8 +342,9 @@ def get_tarred_dataset(
     if 'labels' not in config:
         logging.warning(f"dataset does not have explicitly defined labels")
 
+
     if 'max_utts' in config:
-        raise ValueError('"max_utts" parameter is not supported for tarred datasets')
+        logging.warning('"max_utts" parameter is not supported for tarred datasets')
 
     for dataset_idx, (tarred_audio_filepath, manifest_filepath) in enumerate(
         zip(tarred_audio_filepaths, manifest_filepaths)
@@ -389,7 +390,7 @@ def get_tarred_dataset(
                 trim=config.get('trim_silence', False),
                 use_start_end_token=config.get('use_start_end_token', True),
                 shard_strategy=config.get('tarred_shard_strategy', 'scatter'),
-                shard_manifests=config.get('shard_manifests', False),
+                shard_manifests=config.get('shard_manifests', True),
                 global_rank=global_rank,
                 world_size=world_size,
                 return_sample_id=config.get('return_sample_id', False),
@@ -861,7 +862,7 @@ class ASRPredictionWriter(BasePredictionWriter):
     ):
         import lhotse
 
-        for sample_id, transcribed_text in prediction:
+        for sample_id, hyp in prediction:
             item = {}
             if isinstance(sample_id, lhotse.cut.Cut):
                 sample = sample_id
@@ -871,7 +872,8 @@ class ASRPredictionWriter(BasePredictionWriter):
                 item["offset"] = sample.start
                 item["duration"] = sample.duration
                 item["text"] = sample.supervisions[0].text
-                item["pred_text"] = transcribed_text
+                item["pred_text"] = hyp.text
+                item['timestamps'] = hyp.timestep['segment']
                 self.outf.write(json.dumps(item) + "\n")
                 self.samples_num += 1
             else:
@@ -880,7 +882,8 @@ class ASRPredictionWriter(BasePredictionWriter):
                 item["offset"] = sample.offset
                 item["duration"] = sample.duration
                 item["text"] = sample.text_raw
-                item["pred_text"] = transcribed_text
+                item["pred_text"] = hyp.text
+                item['timestamps'] = hyp.timestep['segment']
                 self.outf.write(json.dumps(item) + "\n")
                 self.samples_num += 1
         return

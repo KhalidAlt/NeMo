@@ -560,7 +560,8 @@ def get_offset_and_duration(AUDIO_RTTM_MAP, uniq_id, decimals=5):
     audio_path = AUDIO_RTTM_MAP[uniq_id]['audio_filepath']
     if AUDIO_RTTM_MAP[uniq_id].get('duration', None):
         duration = round(AUDIO_RTTM_MAP[uniq_id]['duration'], decimals)
-        offset = round(AUDIO_RTTM_MAP[uniq_id]['offset'], decimals)
+        # offset = round(AUDIO_RTTM_MAP[uniq_id].get('offset', 0), decimals)
+        offset = 0.0
     else:
         sound = sf.SoundFile(audio_path)
         duration = sound.frames / sound.samplerate

@@ -425,41 +425,41 @@ class ClusteringDiarizer(torch.nn.Module, Model, DiarizationMixin):
         self._perform_speech_activity_detection()
 
         # Segmentation
-        scales = self.multiscale_args_dict['scale_dict'].items()
-        for scale_idx, (window, shift) in scales:
+        # scales = self.multiscale_args_dict['scale_dict'].items()
+        # for scale_idx, (window, shift) in scales:
 
-            # Segmentation for the current scale (scale_idx)
-            self._run_segmentation(window, shift, scale_tag=f'_scale{scale_idx}')
+        #     # Segmentation for the current scale (scale_idx)
+        #     self._run_segmentation(window, shift, scale_tag=f'_scale{scale_idx}')
 
-            # Embedding Extraction for the current scale (scale_idx)
-            self._extract_embeddings(self.subsegments_manifest_path, scale_idx, len(scales))
+        #     # Embedding Extraction for the current scale (scale_idx)
+        #     self._extract_embeddings(self.subsegments_manifest_path, scale_idx, len(scales))
 
-            self.multiscale_embeddings_and_timestamps[scale_idx] = [self.embeddings, self.time_stamps]
+        #     self.multiscale_embeddings_and_timestamps[scale_idx] = [self.embeddings, self.time_stamps]
 
-        embs_and_timestamps = get_embs_and_timestamps(
-            self.multiscale_embeddings_and_timestamps, self.multiscale_args_dict
-        )
+        # embs_and_timestamps = get_embs_and_timestamps(
+        #     self.multiscale_embeddings_and_timestamps, self.multiscale_args_dict
+        # )
 
-        # Clustering
-        all_reference, all_hypothesis = perform_clustering(
-            embs_and_timestamps=embs_and_timestamps,
-            AUDIO_RTTM_MAP=self.AUDIO_RTTM_MAP,
-            out_rttm_dir=out_rttm_dir,
-            clustering_params=self._cluster_params,
-            device=self._speaker_model.device,
-            verbose=self.verbose,
-        )
-        logging.info("Outputs are saved in {} directory".format(os.path.abspath(self._diarizer_params.out_dir)))
+        # # Clustering
+        # all_reference, all_hypothesis = perform_clustering(
+        #     embs_and_timestamps=embs_and_timestamps,
+        #     AUDIO_RTTM_MAP=self.AUDIO_RTTM_MAP,
+        #     out_rttm_dir=out_rttm_dir,
+        #     clustering_params=self._cluster_params,
+        #     device=self._speaker_model.device,
+        #     verbose=self.verbose,
+        # )
+        # logging.info("Outputs are saved in {} directory".format(os.path.abspath(self._diarizer_params.out_dir)))
 
-        # Scoring
-        return score_labels(
-            self.AUDIO_RTTM_MAP,
-            all_reference,
-            all_hypothesis,
-            collar=self._diarizer_params.collar,
-            ignore_overlap=self._diarizer_params.ignore_overlap,
-            verbose=self.verbose,
-        )
+        # # Scoring
+        # return score_labels(
+        #     self.AUDIO_RTTM_MAP,
+        #     all_reference,
+        #     all_hypothesis,
+        #     collar=self._diarizer_params.collar,
+        #     ignore_overlap=self._diarizer_params.ignore_overlap,
+        #     verbose=self.verbose,
+        # )
 
     @staticmethod
     def __make_nemo_file_from_folder(filename, source_dir):

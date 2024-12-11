@@ -380,16 +380,16 @@ def shard_manifests_if_needed(
     world_size: int,
 ):
     if shard_manifests:
-        if not torch.distributed.is_available():
-            logging.warning("Not running in torch.distributed mode. Manifest sharding not available")
-            return manifest_filepaths
+        # if not torch.distributed.is_available():
+        #     logging.warning("Not running in torch.distributed mode. Manifest sharding not available")
+        #     return manifest_filepaths
 
-        if not torch.distributed.is_initialized():
-            logging.warning(
-                'Manifest sharding was requested but torch.distributed is not initialized '
-                'Did you intend to set the defer_setup flag?'
-            )
-            return manifest_filepaths
+        # if not torch.distributed.is_initialized():
+        #     logging.warning(
+        #         'Manifest sharding was requested but torch.distributed is not initialized '
+        #         'Did you intend to set the defer_setup flag?'
+        #     )
+        #     return manifest_filepaths
 
         manifest_filepaths = expand_sharded_filepaths(
             sharded_filepaths=manifest_filepaths,
@@ -848,6 +848,9 @@ class _TarredAudioToTextDataset(IterableDataset):
         self.shard_manifests = shard_manifests
 
         # Shard manifests if necessary and possible and then expand the paths
+
+        print(self.shard_manifests)
+        print('='*20)
         manifest_filepath = shard_manifests_if_needed(
             shard_manifests=shard_manifests,
             shard_strategy=shard_strategy,
@@ -855,6 +858,9 @@ class _TarredAudioToTextDataset(IterableDataset):
             world_size=world_size,
             global_rank=global_rank,
         )
+
+        print(manifest_filepath)
+        print('='*20)
 
         # If necessary, cache manifests from object store
         cache_datastore_manifests(manifest_filepaths=manifest_filepath)

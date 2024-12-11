@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import jiwer
+import re
 import argparse
 import json
 import os
@@ -23,6 +25,9 @@ from tqdm import tqdm
 
 from nemo.collections.asr.parts.preprocessing.segment import AudioSegment
 from nemo.utils import logging
+from nemo.collections.asr.parts.utils.transcribe_utils import (
+            PunctuationCapitalization,
+            )
 
 parser = argparse.ArgumentParser("Calculate metrics and filters out samples based on thresholds")
 parser.add_argument(
@@ -45,7 +50,7 @@ parser.add_argument(
 )
 parser.add_argument("--max_edge_cer", type=int, help="Threshold edge CER value, %", default=60)
 parser.add_argument("--max_duration", type=int, help="Max duration of a segment, seconds", default=-1)
-parser.add_argument("--min_duration", type=int, help="Min duration of a segment, seconds", default=1)
+parser.add_argument("--min_duration", type=int, help="Min duration of a segment, seconds", default=0)
 parser.add_argument(
     "--num_jobs",
     default=-2,
@@ -59,7 +64,7 @@ parser.add_argument(
 )
 
 
-def _calculate(line: dict, edge_len: int):
+def _calculate(line: dict, edge_len: int, pc):
     """
     Calculates metrics for every entry on manifest.json.
 
@@ -78,33 +83,55 @@ def _calculate(line: dict, edge_len: int):
     """
     eps = 1e-9
 
-    text = line["text"].split()
-    pred_text = line["pred_text"].split()
+    text = line["text"]
+    pred_text = line["pred_text"]
 
-    num_words = max(len(text), eps)
-    word_dist = editdistance.eval(text, pred_text)
+
+    text = text.lower()
+    pred_text = pred_text.lower()
+
+    text = re.sub(r"[.,?:;]", "", text)
+    pred_text = re.sub(r"[.,?:;]", "", pred_text)
+
+    text_splitted = text.split()
+    pred_text_splitted = pred_text.split()
+
+    num_words = max(len(text_splitted), eps)
+
+    if num_words > eps:
+        measures = jiwer.compute_measures(text, pred_text)
+        insertions = measures['insertions']
+
+        insertion_rate = insertions / num_words * 100
+
+        line["insertion_rate"] = insertion_rate
+        line["insertions"] = insertions
+
+    word_dist = editdistance.eval(text_splitted, pred_text_splitted)
     line["WER"] = word_dist / num_words * 100.0
-    num_chars = max(len(line["text"]), eps)
-    char_dist = editdistance.eval(line["text"], line["pred_text"])
+    num_chars = max(len(text), eps)
+    char_dist = editdistance.eval(text, pred_text)
     line["CER"] = char_dist / num_chars * 100.0
 
-    line["start_CER"] = editdistance.eval(line["text"][:edge_len], line["pred_text"][:edge_len]) / edge_len * 100
-    line["end_CER"] = editdistance.eval(line["text"][-edge_len:], line["pred_text"][-edge_len:]) / edge_len * 100
-    line["len_diff_ratio"] = 1.0 * abs(len(text) - len(pred_text)) / max(len(text), eps)
+    line["start_CER"] = editdistance.eval(text[:edge_len], pred_text[:edge_len]) / edge_len * 100
+    line["end_CER"] = editdistance.eval(text[-edge_len:], pred_text[-edge_len:]) / edge_len * 100
+    line["len_diff_ratio"] = 1.0 * abs(len(text_splitted) - len(pred_text_splitted)) / max(len(text_splitted), eps)
     return line
 
 
 def get_metrics(manifest, manifest_out):
     """Calculate metrics for sample in manifest and saves the results to manifest_out"""
+    pc = PunctuationCapitalization(".,?:;...")
+
     with open(manifest, "r") as f:
         lines = f.readlines()
 
     lines = Parallel(n_jobs=args.num_jobs)(
-        delayed(_calculate)(json.loads(line), edge_len=args.edge_len) for line in tqdm(lines)
+        delayed(_calculate)(json.loads(line), edge_len=args.edge_len, pc=pc) for line in tqdm(lines)
     )
     with open(manifest_out, "w") as f_out:
         for line in lines:
-            f_out.write(json.dumps(line) + "\n")
+            f_out.write(json.dumps(line, ensure_ascii=False) + "\n")
     logging.info(f"Metrics save at {manifest_out}")
 
 
@@ -131,16 +158,16 @@ def _apply_filters(
             duration = item["duration"]
             segmented_duration += duration
             if (
-                cer <= max_cer
-                and wer <= max_wer
-                and len_diff_ratio <= max_len_diff_ratio
-                and item["end_CER"] <= max_edge_cer
-                and item["start_CER"] <= max_edge_cer
+                cer > max_cer
+                and wer > max_wer
+                and len_diff_ratio > max_len_diff_ratio
+                and item["end_CER"] > max_edge_cer
+                and item["start_CER"] > max_edge_cer
                 and (max_dur == -1 or (max_dur > -1 and duration < max_dur))
-                and duration > min_dur
+                and duration < min_dur
             ):
                 remaining_duration += duration
-                f_out.write(json.dumps(item) + "\n")
+                f_out.write(json.dumps(item, ensure_ascii=False) + "\n")
 
     logging.info("-" * 50)
     logging.info("Threshold values:")

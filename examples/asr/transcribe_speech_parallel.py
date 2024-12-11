@@ -160,6 +160,8 @@ def main(cfg: ParallelTranscriptionConfig):
     if isinstance(model, EncDecHybridRNNTCTCModel) and cfg.decoder_type is not None:
         model.change_decoding_strategy(decoder_type=cfg.decoder_type)
 
+    model.change_decoding_strategy(cfg.rnnt_decoding, decoder_type=cfg.decoder_type)
+
     cfg.predict_ds.return_sample_id = True
     cfg.predict_ds = match_train_config(predict_ds=cfg.predict_ds, train_ds=model.cfg.train_ds)
 
