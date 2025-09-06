@@ -148,9 +148,10 @@ class AudioToTextDataModule(pl.LightningDataModule, IOMixin):
             dataloader_type="batch",  # "batch" should be used for SFT,
         )
 
-        # Follows the calculation in `nemo.collections.nlp.data.language_modeling.megatron.
-        # base_dataset_utils.get_datasets_weights_and_num_samples`
-        self.max_train_samples = int(math.ceil(self.global_batch_size * self.trainer.max_steps * 1.005))
+        # Follows the calculation in nemo.collections.nlp.data.language_modeling.megatron.
+        # base_dataset_utils.get_datasets_weights_and_num_samples
+        if isinstance(self.trainer.max_steps, int) and self.trainer.max_steps > 0:
+            self.max_train_samples = int(math.ceil(self.global_batch_size * self.trainer.max_steps * 1.005))
 
     @lru_cache
     def _create_dataset(self, mode: str):
